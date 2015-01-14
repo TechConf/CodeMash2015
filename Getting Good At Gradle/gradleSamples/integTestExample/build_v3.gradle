@@ -1,0 +1,55 @@
+buildscript {
+    repositories {
+        maven { url "https://repo.spring.io/libs-release" }
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.10.RELEASE")
+    }
+}
+
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: integrationTestPlugin
+
+
+jar {
+    baseName = 'gs-rest-service'
+    version =  '0.1.0'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://repo.spring.io/libs-release" }
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    testCompile("junit:junit")
+}
+
+class integrationTestPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.sourceSets {
+            integrationTest {
+                java.srcDir project.file('src/integtest/java')
+            }
+        }
+
+        project.configurations {
+            integrationTestCompile.extendsFrom testCompile
+            integrationTestRuntime.extendsFrom testRuntime
+        }
+
+
+        project.task('integrationTest', type: Test) {
+            description = "Run integration tests (located in src/integTest/...)."
+            testClassesDir = project.sourceSets.integrationTest.output.classesDir
+            classpath = project.sourceSets.integrationTest.runtimeClasspath
+        }
+    }
+}

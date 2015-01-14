@@ -1,0 +1,4 @@
+†13:25:09.135 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - Created GET request for "http://localhost:8080/greeting?name=Bobby"
+›13:25:09.150 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - Setting request Accept header to [text/plain, application/json, application/*+json, */*]
+“13:25:09.281 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - GET request for "http://localhost:8080/greeting?name=Bobby" resulted in 200 (OK)
+Ð13:25:09.281 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - Reading [java.lang.String] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@15dcbfac]

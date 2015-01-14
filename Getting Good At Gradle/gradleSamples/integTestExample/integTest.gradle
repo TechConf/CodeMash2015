@@ -1,0 +1,15 @@
+sourceSets {
+    integTest
+}
+
+configurations {
+    integTestCompile.extendsFrom testCompile
+    integTestRuntime.extendsFrom testRuntime
+}
+
+
+task integTest(type:Test) {
+    description = "Run integration tests (located in src/integTest/...)."
+    testClassesDir = sourceSets.integTest.output.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
+}

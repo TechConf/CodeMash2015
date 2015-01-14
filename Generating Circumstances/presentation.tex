@@ -1,0 +1,682 @@
+% Created 2015-01-09 Fri 10:21
+\documentclass[presentation, bigger]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{minted}
+\setbeamertemplate{navigation symbols}{}
+\usemintedstyle{emacs}
+\usepackage[utf8x]{inputenc}
+\titlegraphic{\includegraphics[width=0.4\textwidth]{images/title}}
+\institute[]{Software Engineer at Basho Technologies,Inc | Founder/Organizer Papers We Love \\ @zeeshanlakhani}
+\usetheme{Madrid}
+\author{Zeeshan Lakhani}
+\date{1-9-2015 (Codemash)}
+\title{Generating Circumstances}
+\begin{document}
+
+\maketitle
+
+\begin{frame}[label=sec-]{What I Listened To}
+\includegraphics[width=\textwidth]{images/hungry.png}
+\end{frame}
+\begin{frame}[label=sec-]{\#TDDDEADYO}
+\includegraphics[width=\textwidth]{images/tdd.png}\footnote{\url{http://bit.ly/1ALmSGC}}
+\end{frame}
+\begin{frame}[label=sec-]{In Papers}
+\begin{center}
+ \includegraphics[scale=0.25]{images/papers}
+\end{center}
+\end{frame}
+\begin{frame}[label=sec-]{In the Year 2000\ldots{}}
+\begin{quote}
+We have designed a simple domain-specific language of testable specifications
+which the tester uses to define expected properties of the functions under test.
+\end{quote}
+
+\begin{quote}
+We have chosen to put distribution under the human tester's control, by
+defining a test data generation language…
+\end{quote}
+
+\begin{quote}
+We have taken two relatively old ideas, namely specifications as oracles and
+random testing, and found ways to make them easily available …
+\end{quote}
+\end{frame}
+\begin{frame}[label=sec-]{Don't Write Tests\footnote{John Hughes - \url{http://bit.ly/1rDOGr3}}}
+\begin{itemize}
+\item One Feature - O(n)
+\item Pairs of Features - O(n2) - quadratic
+\item Triples of Features - O(n3) - cubic
+\end{itemize}
+\end{frame}
+\begin{frame}[label=sec-]{Thinking in Specifications\footnote{the @seancribbs - \url{http://bit.ly/1wZm0I6}}}
+\begin{itemize}
+\item A “roundtrip”, e.g encode/decode?
+\item An existing implementation with similar behavior
+\item A relationship between inputs/outputs?
+\item A set of client interactions with a platform
+\end{itemize}
+\end{frame}
+\begin{frame}[label=sec-]{Sample Properties\footnotemark[3]{}}
+\begin{itemize}
+\item Reversing a list twice should equal the original list.
+\item Reversing and sorting a list should preserve its length.
+\item Popping an element from a queue should reduce its size by one
+\end{itemize}
+\end{frame}
+\begin{frame}[label=sec-]{Defining Truth?\footnote{Notes on Erlang QC - \url{http://bit.ly/14CmDBF}}}
+\begin{itemize}
+\item Invariant
+\end{itemize}
+\begin{block}{?SOMETIMES(N,Prop)}
+A property which tests Prop repeatedly N times, failing only if all of the
+tests fail. In other words, the property passes if Prop sometimes passes. This
+is used in situations where test outcomes are non-deterministic, to search for
+test cases that consistently fail\ldots{}
+\end{block}
+
+\begin{block}{fails(Prop::property()) -> property()}
+A property which succeeds when its argument fails. Sometimes it is useful to
+write down properties which do not hold (even though one might expect them to).
+This can help prevent misconceptions.
+\end{block}
+\end{frame}
+
+\begin{frame}[label=sec-]{The Only Sure Thing in Computer Science}
+\begin{itemize}
+\item Everything is a tradeoff.\footnote{\url{http://bit.ly/1xP7uIg}}
+\begin{itemize}
+\item QC Tradeoffs: Duration | Assertion Power
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label=sec-]{A Personal Story}
+\begin{itemize}
+\item ClojureWest 2014
+
+\item John Hugues / Reid Draper
+\end{itemize}
+
+\begin{center}
+ \includegraphics[scale=0.25]{images/story}
+\end{center}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{\#BEZERKER}
+ \begin{minted}[]{clojure}
+;; Release-Base and Release-Link are at the top of this file. This is
+;; so Media-Link can correctly depend on Release-Link.
+(def Release-New
+  (assoc Release-Base
+    ;; TODO: This should probably be optional, but I really want csync to send it
+    ;; so leaving it as required just for now.
+    :slug c/Slug
+    :name c/NonEmptyString
+    :artists (s/both [c/Simple-Account-Link] c/NonEmptyCollection)
+    ;; TODO: This should probably be optional, but I really want csync to send it
+    ;; so leaving it as required just for now.
+    :created-by c/Simple-Account-Link
+    (s/optional-key :copyright) (s/maybe c/Localized-Map)
+    :media (s/both [(s/either c/Simple-Track-Link c/Simple-Video-Link)]
+                   c/NonEmptyCollection)
+    (s/optional-key :purchase) c/Simple-Link
+    (s/optional-key :label) c/Simple-Account-Link
+    (s/optional-key :images) c/Images
+    (s/optional-key :description) c/Localized-Map
+    (s/optional-key :created-with) c/Simple-Account-Link
+    (s/optional-key :uploaded-with) c/Simple-Account-Link
+    (s/optional-key :hearted) s/Bool
+    (s/optional-key :pro-id) s/Str
+    (s/optional-key :pro-slug) s/Str))
+
+(def Release-Existing
+  (assoc Release-Base
+    :name c/NonEmptyString
+    :slug c/Slug
+    :prior-slugs [c/Slug]
+    :created-at sc/ISO-Date-Time
+    :created-by a/Account-Link
+    :artists [a/Account-Link]
+    :label (s/maybe a/Account-Link)
+    :images c/Images
+    :hearted s/Bool
+    :copyright (s/maybe c/Localized-Map)
+    :description c/Localized-Map
+    :media [(s/either Track-Link Video-Link)]
+    :sharing c/Simple-Link
+    :total-hearts s/Int
+    ;; :total-plays s/Int
+    :created-with (s/maybe a/Account-Link)
+    :uploaded-with (s/maybe a/Account-Link)
+    :purchase (s/maybe c/Simple-Link)
+    :pro-id (s/maybe s/Str)
+    :pro-slug (s/maybe s/Str)
+    ;; :license License-Link
+    :hearted-by c/Simple-Link
+    ;; :listened-to c/Simple-Link
+    ))
+
+(def Playlist-Base
+  {:name c/NonEmptyString
+   (s/optional-key :tags) c/Tags
+   (s/optional-key :duration-seconds) (s/maybe s/Int)})
+
+(def Playlist-Link
+  (assoc Playlist-Base
+    :url c/URL
+    :created-by a/Account-Link
+    :images c/Images
+    :sharing c/Simple-Link
+    :pro-id  (s/maybe s/Str)
+    :pro-slug (s/maybe s/Str)
+    ;; :total-hearts s/Int
+    ;; :total-plays s/Int
+    ))
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{clojure}
+(def Mix-Existing
+  (assoc Mix-Base
+    :slug c/Slug
+    :prior-slugs [c/Slug]
+    :created-at sc/ISO-Date-Time
+    :created-by a/Account-Link
+    :artists [a/Account-Link]
+    :release (s/maybe Release-Link)
+    :label (s/maybe a/Account-Link)
+    :images c/Images
+    :hearted s/Bool
+    :copyright (s/maybe c/Localized-Map)
+    ;; :license c/Simple-Link
+    :description c/Localized-Map
+    :source-tracks [{:track Track-Link
+                     :start-time-seconds s/Int}]
+    :sharing c/Simple-Link
+    :total-hearts s/Int
+    ;; :total-plays s/Int
+    :purchase (s/maybe c/Simple-Link)
+    :created-with (s/maybe a/Account-Link)
+    :uploaded-with (s/maybe a/Account-Link)
+    :recorded-date (s/maybe sc/ISO-Date-Time)
+    :hearted-by c/Simple-Link
+    ;; :listened-to c/Simple-Link
+    ))
+\end{minted}
+\end{frame}
+\begin{frame}[label=sec-]{quickcheck in the wild}
+\begin{itemize}
+\item \href{https://github.com/clojure/test.check}{test.check (clojure)}
+\item \href{https://hackage.haskell.org/package/QuickCheck}{Quickcheck - Haskell}
+\item \href{http://www.quviq.com/products/erlang-quickcheck/}{Erlang Quickcheck (from QuviQ)}
+\item \href{http://www.scalacheck.org/}{ScalaCheck}
+\item \href{http://jsverify.github.io/}{JSVerify}
+\item \href{https://github.com/fsharp/FsCheck}{FsCheck (for .NET)}
+\item \ldots{}
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile,label=sec-]{Specification - The Transpose of a Transposed Matrix is the Original Matrix}
+ \begin{block}{(A\^{}T)\^{}T = A}
+\begin{minted}[]{clojure}
+(def transpose-of-transpose-prop
+  (prop/for-all [m matrix-gen]
+  (= m (transpose (transpose m)))))
+
+(quick-check 50 transpose-of-transpose-prop)
+
+;; Results:
+{:result true, :num-tests 50, :seed 1405444353915}
+\end{minted}
+\end{block}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{clojure}
+(def matrix
+  [[1 2]
+   [3 4]])
+
+(transpose matrix)
+
+;; Results:
+[[1 3]
+ [2 4]]
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{clojure}
+(def matrix-gen
+  (gen/such-that
+   not-empty
+   (gen/vector
+    (gen/tuple gen/int gen/int gen/int))))
+
+(gen/sample matrix-gen 10)
+
+;; Results:
+([[0 0 1]]
+ [[0 -1 0]]
+ [[0 2 1] [0 1 -2]]
+ [[1 0 1] [0 1 -3] [0 4 2] [2 -3 4]]
+ [[-3 5 -4] [3 -3 -2] [-2 3 -2] [-3 -5 -3] [0 -3 -1]]
+ [[2 -5 -3] [-4 -3 5] [-4 -3 -4] [-4 4 3]]
+ [[-4 4 5] [-4 2 0] [5 -6 0] [2 -3 5] [-6 -3 -5]]
+ [[-5 2 -3] [-2 -2 5]]
+ [[-1 3 -5] [5 -3 -2] [7 4 -7] [7 -3 -2] [1 -3 8]]
+ [[-5 -3 -3] [2 7 -3]])
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,label=sec-]{gen/fmap}
+ \alert{gen/fmap} allows us to create a new generator by applying a function to the
+values generated by another generator\footnote{test.check docs - \url{http://bit.ly/1xWxQ9R}}
+
+\begin{minted}[]{clojure}
+(def gen1
+  (gen/fmap (fn [n] (* n 2)) gen/nat))
+
+(gen/sample gen1)
+
+;; Results
+(0 2 4 2 0 10 10 6 8 8)
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,label=sec-]{gen/bind}
+ \alert{gen/bind} allows us to create a new generator based on the value of a
+previously created generator\footnotemark[6]{}
+
+\begin{itemize}
+\item Generator a -> (a -> Generator b) -> Generator b
+\end{itemize}
+
+\begin{minted}[]{clojure}
+(def gen2
+  (gen/bind gen1 (fn [v]
+                 (gen/hash-map :codemash
+                               (gen/return v)))
+(gen/sample gen2)
+
+;; Results
+({:codemash 0} {:codemash 2} {:codemash 0}
+ {:codemash 4} {:codemash 6} {:codemash 10}
+ {:codemash 2} {:codemash 14} {:codemash 12}
+ {:codemash 16})
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,label=sec-]{seed}
+ Running Against the Same Set of Test Cases
+
+\begin{minted}[]{clojure}
+(def prop-correct
+  (prop/for-all [v gen1]
+                (> 100 v)))
+
+(tc/quick-check 100 prop-correct :seed 1420668333773)
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,label=sec-]{Shrinking\footnote{video - \url{http://bit.ly/1zYwPwa}}}
+ Shrink trees are \alert{lazily} generated for each generated result value
+
+\begin{center}
+ \includegraphics[scale=0.3]{images/flattened_joined_shrink}
+\end{center}
+
+\rule{\linewidth}{0.5pt}
+
+Remember our property \alert{(> 100 v)}?
+
+\begin{minted}[]{clojure}
+{:result false, :seed 1420668333773, :failing-size 63,
+ :num-tests 64, fail [108],
+ :shrunk {:total-nodes-visited 17, :depth 2,
+          :result false,
+ :smallest [100]}}
+\end{minted}
+\end{frame}
+\begin{frame}[label=sec-]{schema->gen\footnote{\url{http://bit.ly/1tSakMP}} for reasons}
+\begin{itemize}
+\item Turn types, generics, schemas into generated data.
+\item My use-case: Prismatic Schema\footnote{\url{http://bit.ly/1BTaPW4}}\textsuperscript{,}\,\footnote{another example - Herbert - \url{http://bit.ly/1IxJs5V}}
+\item Work with Properties Testing API Workflow
+\item Regression Testing Out of the Box
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{clojure}
+  (def s-vector
+    [(s/one s/Bool "first")
+     (s/one s/Num "second")
+     (s/one #"[a-z0-9]" "third")
+     (s/optional s/Keyword "maybe")
+     s/Int])
+
+  ;; (true 3.0 "r"
+  ;; :_1:r98l:Y!:npG-*:ZLyx4*+?:+I7:yO8577B5D:392_:!1-+2:8-aMu7
+  ;; 1 7 3 -4)
+
+  (def s-hashmap-with-hashmap
+    {:foo s/Int
+     :baz s/Str
+     :bar {:foo s/Int}
+     :far {(s/optional-key :bah) s/Bool}
+     s/Keyword s/Num})
+
+;; {:foo 0,
+;;  :baz "%?I\"",
+;;  :bar {:foo 9},
+;;  :far {:bah false},
+;;  :j 1.0,
+;;  :O*37L:?K7+43:M?!?U_DIl*:GS90Ky**11 2.0}
+
+  (s/check s-hashmap-with-hashmap datum)
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,label=sec-]{A more realistic shrink}
+ \begin{itemize}
+\item Trying to Model Recursive Data Types\footnote{\url{http://bit.ly/1sc221b}}
+\end{itemize}
+
+\begin{minted}[]{clojure}
+{:foo -1.53125, :baz {:foo -3.0,
+ :baz {:baz {:baz {:baz {:baz {:foo -1.1891892}}}}}}}
+
+;; :smallest [{:foo 0.0, :baz {:foo 0.0,
+;;             :baz {:baz {:foo 0.0}}}}]
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \alert{Multiple Dispatch}
+
+\begin{minted}[]{clojure}
+(defmethod schema->gen* schema.core.One
+  [e]
+  (schema->gen (:schema e)))
+
+(defmethod schema->gen* schema.core.RequiredKey
+  [e]
+  (gen/return (:k e)))
+
+(defmethod schema->gen* schema.core.OptionalKey
+  [e]
+  (gen/return (:k e)))
+
+(defmethod schema->gen* schema.core.Maybe
+  [e]
+  (gen/one-of
+   [(gen/return nil)
+    (schema->gen (:schema e))]))
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \alert{Composing Generators}
+
+\begin{minted}[]{clojure}
+(defmethod schema->gen* clojure.lang.Sequential
+  [e]
+  (let [[ones [repeated]]
+        (split-with #(instance? schema.core.One %) e)
+        [required optional]
+        (split-with (comp not :optional?) ones)]
+    (g/apply-by
+     (partial apply concat)
+     (g/one-of
+      (apply gen/tuple (map schema->gen required))
+      (g/apply-by
+       (partial apply concat)
+       (apply gen/tuple
+              (map schema->gen
+                   (concat required optional)))
+       (if repeated
+         (gen/vector (schema->gen repeated))
+         (gen/return [])))))))
+\end{minted}
+\end{frame}
+\begin{frame}[label=sec-]{Changing Gears}
+\begin{center}
+ \includegraphics[scale=0.3]{images/merkletree}
+\end{center}
+\end{frame}
+\begin{frame}[label=sec-]{eqc\_statem}
+Model State Transitions (as a FSM) -> Assert Against Implementation\footnote{@jtuple - \url{http://bit.ly/1tOfzaR}}
+
+\begin{center}
+ \includegraphics[scale=0.25]{images/eqc_statem}
+\end{center}
+\end{frame}
+\begin{frame}[label=sec-]{Side Effects}
+\begin{itemize}
+\item Requires knowledge about the \alert{context} and its possible
+\alert{histories}\footnote{\url{http://bit.ly/14CyorP}}
+\item \alert{Symbolic values} are generated during test \alert{generation}
+    and \alert{dynamic values} are computed during test \alert{execution}
+\begin{itemize}
+\item dynamic state is computed at runtime
+\end{itemize}
+\item \alert{next\_state} callback operates during both test \alert{generation}
+     and test \alert{execution}
+\end{itemize}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{erlang}
+%% ====================================================================
+%% Notes
+%% ====================================================================
+
+%% [1] Earle, Clara Benac, and Lars-Ake Fredlund."Testing Java with QuickCheck."
+
+%% This is a very basic eqc_statem test that I've updated a bit, dealing with
+%% adding|cons'ing to a list and making sure those added values are members of a
+%% list.
+
+%% ====================================================================
+%% Code
+%% ====================================================================
+
+-module(stateful_sm).
+-compile(export_all).
+
+-include_lib("eqc/include/eqc.hrl").
+-include_lib("eqc/include/eqc_statem.hrl").
+
+setup() ->
+    io:format("Setup Components If Need Be.~n"),
+    ok.
+
+cleanup() ->
+    io:format("TearDown Components if Need Be.~n"),
+    ok.
+
+test() ->
+    test(100).
+
+test(N) ->
+    setup(),
+    try eqc:quickcheck(numtests(N, prop_codemash()))
+    after
+        cleanup()
+    end.
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{erlang}
+%% Initialize State
+initial_state() -> [].
+
+%% ------ Grouped operator: add
+%% @doc add_command - Command generator
+-spec add_command(S :: eqc_statem:symbolic_state()) ->
+        eqc_gen:gen(eqc_statem:call()).
+add_command(S) ->
+    {call, ?MODULE, add, [S, nat()]}.
+
+%% @doc add_pre - Precondition for add
+-spec add_pre(S :: eqc_statem:symbolic_state(),
+              Args :: [term()]) -> boolean().
+add_pre(S, _Args) ->
+    S /= undefined.
+
+%% @doc add_next - Next state function
+-spec add_next(S :: eqc_statem:symbolic_state(),
+               V :: eqc_statem:var(),
+               Args :: [term()]) -> eqc_statem:symbolic_state().
+add_next(S, _Value, [_, N]) ->
+    [N|S].
+
+%% @doc add_post - Postcondition for add
+-spec add_post(S :: eqc_statem:dynamic_state(),
+               Args :: [term()], R :: term()) -> true | term().
+add_post(S, [_, N], Res) ->
+    [N|S] =:= Res.
+
+%% @doc - Perform add action
+-spec add(list(), non_neg_integer()) -> list().
+add(AList, N) ->
+    [N|AList].
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{erlang}
+%% ------ Grouped operator: is_member
+%% @doc is_member_command - Command generator
+-spec is_member_command(S :: eqc_statem:symbolic_state()) ->
+        eqc_gen:gen(eqc_statem:call()).
+is_member_command(S) ->
+    {call, ?MODULE, is_member, [S, nat()]}.
+
+%% @doc is_member_pre - Precondition for is_member
+-spec is_member_pre(S :: eqc_statem:symbolic_state(),
+                    Args :: [term()]) -> boolean().
+is_member_pre(S, _Args) ->
+    S /= undefined.
+
+%% @doc is_member_next - Next state function
+-spec is_member_next(S :: eqc_statem:symbolic_state(),
+                     V :: eqc_statem:var(),
+                     Args :: [term()]) -> eqc_statem:symbolic_state().
+is_member_next(S, _Value, _Args) ->
+    S.
+
+%% @doc is_member_post - Postcondition for is_member
+-spec is_member_post(S :: eqc_statem:dynamic_state(),
+                     Args :: [term()], R :: term()) -> true | term().
+is_member_post(S, [_, N], Res) ->
+    Res == lists:member(N, S).
+
+%% @doc - Perform is_member action
+-spec is_member(list(), non_neg_integer()) -> boolean().
+is_member(S, N) ->
+    lists:member(N, S).
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{erlang}
+%% ====================================================================
+%% Invariants
+%% ====================================================================
+
+-spec invariant(eqc_statem:dynamic_state()) -> boolean().
+invariant(S) when length(S) >= 0 ->
+    true;
+invariant(S) when length(S) > 0 ->
+    FirstNum = hd(S),
+    is_number(FirstNum) andalso FirstNum >= 0;
+invariant(_) ->
+    false.
+
+%% Property Test
+prop_codemash() ->
+    ?FORALL(Cmds,commands(?MODULE),
+            aggregate(command_names(Cmds),
+                      begin
+                      {H, S, Res} = run_commands(?MODULE, Cmds),
+                      pretty_commands(?MODULE,
+                                      Cmds,
+                                      {H, S, Res},
+                                      Res =:= ok)
+                      end)).
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{}
+ \begin{minted}[]{erlang}
+stateful_sm:test().
+
+%% Results:
+
+%% Licence for Basho reserved until
+%% {{2015,1,8},{16,15,57}}
+%% .........................
+%% .........................
+%% .........................
+%% .........................
+%% OK, passed 100 tests
+
+%% 51.6% {stateful_sm,is_member,2}
+%% 48.4% {stateful_sm,add,2}
+%% true
+\end{minted}
+\end{frame}
+\begin{frame}[fragile,shrink,label=sec-]{WIP: Modeling KV-YZ HashTree in Riak}
+ \begin{minted}[]{erlang}
+%% ------ Grouped operator: start_yz_tree
+%% @doc start_yz_tree_command - Command generator
+-spec start_yz_tree_command(S :: eqc_statem:symbolic_state()) ->
+        eqc_gen:gen(eqc_statem:call()).
+start_yz_tree_command(_S) ->
+    {call, ?MODULE, start_yz_tree, []}.
+
+%% @doc start_yz_tree_pre - Precondition for generation
+-spec start_yz_tree_pre(S :: eqc_statem:symbolic_state()) -> boolean().
+start_yz_tree_pre(S) ->
+    S#state.yz_idx_tree == undefined.
+
+%% --------------------------------------------------------------------
+
+-spec insert_kv_tree(sync|async, obj(), {ok, tree()}) -> ok.
+insert_kv_tree(Method, RObj, {ok, TreePid}) ->
+    {Bucket, Key} = eqc_util:get_bkey_from_object(RObj),
+    Items = [{void, {Bucket, Key}, RObj}],
+    case Method of
+        sync ->
+            riak_kv_index_hashtree:insert(Items, [], TreePid);
+        async ->
+            riak_kv_index_hashtree:async_insert(Items, [], TreePid)
+    end.
+\end{minted}
+\end{frame}
+\begin{frame}[label=sec-]{We Talking About Tests? Tests?}
+\begin{itemize}
+\item Automating Selenium Actions\footnote{Kemerling - Pivotal Tracker -  \url{http://bit.ly/1w5sXHk}}
+\item Generating Models
+\item Sample Data
+\item Investigation
+\item Assertions
+\end{itemize}
+\end{frame}
+\begin{frame}[label=sec-]{Going Further}
+\begin{itemize}
+\item Formal Specifications - Thinking for Programmers\footnote{\url{http://bit.ly/1w5emM2}}
+\item Molly - Peter Alvaro\footnote{\url{http://bit.ly/1obnZLJ}}
+\begin{itemize}
+\item A system for automatically detecting errors in a
+program with a correctness spec, the program, and
+malevolent sentience as input
+\end{itemize}
+\end{itemize}
+\end{frame}
+% Emacs 25.0.50.1 (Org mode 8.3beta)
+\end{document}

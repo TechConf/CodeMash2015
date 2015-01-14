@@ -1,0 +1,3 @@
+[Slides](http://www.slideshare.net/godfreynolan/android-auto) from Automotive Android by [Godfrey Nolan](https://twitter.com/godfreynolan).  
+
+Over the last year, many Automotive companies have released SDKs and APIs and Google have announced Automotive Android that finally allow Android developers to create their own mobile automotive apps that expand the boundaries of the automotive dashboard far beyond the physical car. In this class, you'll learn how to create apps for this new and relatively overlooked commercial opportunity for mobile developers. We'll also build a couple of sample apps that focus on how communicate with Ford's Sync and GM's Remote APIs .

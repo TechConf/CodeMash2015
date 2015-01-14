@@ -1,0 +1,9 @@
+//groovy
+(1..10).each { i -> println "Hello ${i}" }
+
+//java
+Formatter fmt = new Formatter();
+Calendar cal = Calendar.getInstance();
+fmt = new Formatter();
+fmt.format("%tc", cal);
+System.out.println("The Date is now: " + fmt);

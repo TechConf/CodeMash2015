@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+    <title>Process Bindings - How to do Node.js on the JVM</title>
+
+    <meta name="description" content="A presentation for the Asheville Coder's League by Lance Ball" />
+		<meta name="author" content="Lance Ball" />
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/tomorrow.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Process Bindings</h1>
+          <h3>How to do Node.js on the JVM</h3>
+          <p>&ofcir;</p>
+          <p>
+            CodeMash 2015
+          </p>
+				</section>
+
+        <section>
+          <img style="border:none" src="images/redhat-logo.jpg" alt="Red Hat logo"/>
+          <img style="border:none" src="images/jboss-logo.png" alt="JBoss logo"/>
+          <br/>
+          <img style="border:none" src="images/projectodd-logo.png" alt="project:odd logo"/>
+					<p>
+						<a href="http://lanceball.com">Lance Ball</a> / <a href="http://twitter.com/lanceball">@lanceball</a>
+					</p>
+        </section>
+
+        <section>
+          <h2>project:odd</h2>
+          <img style="border:none" src="images/nodyn.png" alt="Nodyn logo"/>
+          <br/>
+          <img style="border:none" src="images/jruby.png" alt="JRuby logo"/>
+          <img style="border:none" src="images/dynjs.png" alt="DynJS logo"/>
+          <br/>
+          <img style="border:none" src="images/immutant.png" alt="Immutant logo"/>
+          <img style="border:none" src="images/torquebox-logo.png" alt="TorqueBox logo"/>
+        </section>
+
+				<section>
+          <h2>But Why?</h2>
+          <blockquote cite="https://www.joyent.com/blog/node-js-advisory-board">
+            &ldquo;In four years ... Node.js has experienced phenomenal growth.
+            Node.js is the <span class="fragment highlight-red">language
+            of choice</span> for high performance, low latency
+            applications and has been powering everything from robots to API
+            engines to cloud stacks to mobile web sites.&rdquo; 
+					</blockquote>
+          <small><a href="https://www.joyent.com/blog/node-js-advisory-board">Node.js Advisory Board - October 23, 2014</a></small>
+				</section>
+
+        <section>
+          <h2>Language or Runtime?</h2>
+          <ul>
+            <li class="fragment">
+            <pre style="padding:0 18px"><code data-trim>document.addEventListener("DOMContentLoaded", 
+  function(event) { //do work 
+});</code></pre>
+            </li>
+            <li class="fragment">
+              <pre style="padding:0 18px"><code data-trim>if (!isFinite( someVar )) {
+  // to infinity and beyond!
+}</code></pre>
+            </li>
+            <li class="fragment">
+              <pre style="padding:0 18px"><code data-trim>setTimeout(function() {
+// pomodoro complete!
+}, 1,500,000);</code></pre>
+            </li>
+            <li class="fragment">
+              <pre style="padding:0 18px"><code data-trim>var enc = "foo.asp?name=st%C3%A5le&car=saab";
+var decoded = decodeURI(enc);</code></pre>
+            </li>
+            <li class="fragment">
+            <pre style="padding:0 18px"><code data-trim>console.log("To be or not to be");</code></pre>
+            </li>
+          </ul>
+        </section>
+
+				<section>
+          <h2><span style="color:red">Language</span> or Runtime?</h2>
+          <ul>
+            <li>
+            <pre style="padding:0 18px"><code data-trim>document.addEventListener("DOMContentLoaded", 
+  function(event) { //do work 
+});</code></pre>
+            </li>
+            <li style="background-color: #f00">
+              <pre style="padding:0 18px"><code data-trim>if (!isFinite( someVar )) {
+  // to infinity and beyond!
+}</code></pre>
+            </li>
+            <li>
+              <pre style="padding:0 18px"><code data-trim>setTimeout(function() {
+// pomodoro complete!
+}, 1,500,000);</code></pre>
+            </li>
+            <li style="background-color: #f00">
+              <pre style="padding:0 18px"><code data-trim>var enc = "foo.asp?name=st%C3%A5le&amp;car=saab";
+var decoded = decodeURI(enc);</code></pre>
+            </li>
+            <li>
+            <pre style="padding:0 18px"><code data-trim>console.log("To be or not to be");</code></pre>
+            </li>
+          </ul>
+        </section>
+
+				<section>
+          <h2>Language or <span style="color:red">Runtime</span></h2>
+          <ul>
+            <li style="background-color:red">
+            <pre style="padding:0 18px"><code data-trim>document.addEventListener("DOMContentLoaded", 
+  function(event) { //do work 
+});</code></pre>
+            </li>
+            <li>
+              <pre style="padding:0 18px"><code data-trim>if (!isFinite( someVar )) {
+  // to infinity and beyond!
+}</code></pre>
+            </li>
+            <li style="background-color:red">
+              <pre style="padding:0 18px"><code data-trim>setTimeout(function() {
+// pomodoro complete!
+}, 1,500,000);</code></pre>
+            </li>
+            <li>
+              <pre style="padding:0 18px"><code data-trim>var enc = "foo.asp?name=st%C3%A5le&amp;car=saab";
+var decoded = decodeURI(enc);</code></pre>
+            </li>
+            <li style="background-color:red">
+            <pre style="padding:0 18px"><code data-trim>console.log("To be or not to be");</code></pre>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Node.js Architecture</h2>
+					<img src="process-bindings.png" alt="Node Architecture" />
+        </section>
+
+        <section>
+          <h2>V8 ECMAScript Engine</h2>
+          <ul>
+            <li>Developed by Google</li>
+            <li>Chrome and Node.js runtime</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>libuv</h2>
+          <p>Asynchronous I/O &amp; Event Loop</p>
+          <ul>
+            <li>File is ready for writing</li>
+            <li>Socket has data ready for reading</li>
+            <li>A timer has timed out</li>
+            <li>A network server has bound to a port</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Javascript API</h2>
+          <h3 style="color:red"><code>User Code</code></h3>
+          <pre><code class="javascript">
+    var http = require('http');
+
+    http.createServer(function (req, res) {
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.end('Hello World\n');
+    }).listen(1337, '127.0.0.1');
+
+    console.log('Server running at http://127.0.0.1:1337/');
+          </code></pre>
+        </section>
+
+        <section>
+          <img src="images/doge.png" alt="such doge" style='border:none'/>
+        </section>
+
+        <section>
+          <h2>Node Process</h2>
+          <h3 style="color:red"><code>src/node.js</code></h3>
+          <pre><code class="javascript">(function(process) {
+  this.global = this;
+
+  function startup() {
+    var EventEmitter = NativeModule.require('events').EventEmitter;
+
+    process.__proto__ = Object.create(EventEmitter.prototype, {
+      constructor: {
+        value: process.constructor
+      }
+    });
+    EventEmitter.call(process);
+
+    process.EventEmitter = EventEmitter; // process.EventEmitter is deprecated
+
+    // etc...
+});
+</code></pre>
+          <p>Node.js main function takes a <code>process</code> object</p>
+        </section>
+
+        <section>
+          <h2>Process Bindings</h2>
+          <h3 style="color:red"><code>src/node.cc</code></h3>
+          <pre><code class="cpp">void SetupProcessObject(Environment* env,
+                        int argc,
+                        const char* const* argv,
+                        int exec_argc,
+                        const char* const* exec_argv) {
+
+  Local&lt;Object&gt; process = env-&gt;process_object();
+
+  // process.version
+  READONLY_PROPERTY(process,
+                    "version",
+                    FIXED_ONE_BYTE_STRING(env-&gt;isolate(), NODE_VERSION));
+
+  // process.binding
+  NODE_SET_METHOD(process, "binding", Binding);
+}
+          </code></pre>
+          <p>The process object is created in C++ using the V8 API</p>
+          <p>Some native properties are bound to the object here</p>
+        </section>
+        
+        <section>
+          <h2>V8 Binding</h2>
+          <h3 style="color:red"><code>src/node.cc</code></h3>
+          <pre><code class="cpp">static void Binding(const FunctionCallbackInfo&lt;Value&gt;&amp; args) {
+  HandleScope handle_scope(args.GetIsolate());
+  Environment* env = Environment::GetCurrent(args.GetIsolate());
+
+  Local&lt;String&gt; module = args[0]-&gt;ToString();
+  node::Utf8Value module_v(module);
+
+  Local&lt;Object&gt; cache = env-&gt;binding_cache_object();
+  Local&lt;Object&gt; exports;
+
+  if (cache-&gt;Has(module)) {
+    exports = cache-&gt;Get(module)-&gt;ToObject();
+    args.GetReturnValue().Set(exports);
+    return;
+  }
+  // etc.
+}</code></pre>
+          <p>Similar to a Javascript module lookup, but with native exports</p>
+        </section>
+
+        <section>
+          <h2>Loading Node.js in V8</h2>
+          <h3 style="color:red"><code>src/node.cc</code></h3>
+          <pre><code class="cpp">void Load(Environment* env) {
+  // Compile, execute the src/node.js file. The node.js file returns a function 'f'
+
+  Local&lt;String&gt; script_name = FIXED_ONE_BYTE_STRING(env-&gt;isolate(), "node.js");
+  Local&lt;Value&gt; f_value = ExecuteString(env, MainSource(env), script_name);
+  Local&lt;Function&gt; f = Local&lt;Function&gt;::Cast(f_value);
+
+  // Now we call 'f' with the 'process' variable that we've built up with
+  // all our bindings. Inside node.js we'll take care of assigning things to
+  // their places.
+
+  Local&lt;Object&gt; global = env-&gt;context()-&gt;Global();
+  Local&lt;Value&gt; arg = env-&gt;process_object();
+  f-&gt;Call(global, 1, &arg);
+}</code></pre>
+          <p>Node.js V8 layer loads lib/node.js providing a process object</p>
+        </section>
+
+
+        <section>
+          <h2><code>process.binding()</code></h2>
+          <h3 style="color:red"><code>lib/fs.js</code></h3>
+          <pre><code class="javascript">var binding = process.binding('fs');
+
+fs.exists = function(path, callback) {
+  if (!nullCheck(path, cb)) return;
+
+  binding.stat(pathModule._makeLong(path), cb);
+
+  function cb(err, stats) {
+    if (callback) callback(err ? false : true);
+  }
+};</code></pre>
+          <p>The <code>binding</code> object does the heavy lifting</p>
+        </section>
+
+        <section>
+          <h2>Bound Functions &amp; Properties</h2>
+          <h3 style="color:red"><code>src/node_file.cpp</code></h3>
+          <pre><code>
+    NODE_SET_METHOD(target, "stat", Stat);
+
+    static void Stat(const FunctionCallbackInfo&lt;Value&gt;&amp; args) {
+      Environment* env = Environment::GetCurrent(args.GetIsolate());
+      HandleScope scope(env-&gt;isolate());
+
+      if (args.Length() &lt; 1)
+        return TYPE_ERROR("path required");
+      if (!args[0]-&gt;IsString())
+        return TYPE_ERROR("path must be a string");
+
+      // etc..
+    }
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Node.js Architecture</h2>
+					<img src="process-bindings.png" alt="Node Architecture" />
+        </section>
+
+        <section>
+          <h2>Nodyn Architecture</h2>
+					<img src="nodyn-process-bindings.png" alt="Node Architecture" />
+        </section>
+
+        <section>
+          <img style="border:none" src="images/dynjs.png" alt="DynJS logo"/>
+          <p>Developed by <code style="color:red">project odd</code> at Red Hat.</p>
+          <p>Apache 2.0 License</p>
+        </section>
+
+        <section>
+          <h2>Javascript / Java Interop</h2>
+          <h3 style="color:red"><code>nodyn/bindings/os.js</code></h3>
+          <pre><code>// Called by Node's os module.
+// Node has no idea and does not care that a Java method
+// is used to obtain and return the results.
+
+exports.getTotalMem = function() {
+  return java.lang.Runtime.getRuntime().totalMemory();
+}; </code></pre>
+          <p>Unlike V8, the JS runtimes on the JVM provide direct access to native objects</p>
+        </section>
+
+        <section>
+          <h2>Netty</h2>
+          <a href="http://netty.io">http://netty.io</a>
+          <p>Asynchronous I/O &amp; Event Loop</p>
+        </section>
+
+        <section>
+          <h2>Javascript API</h2>
+          <h3 style="color:red"><code>User Code - Unchanged</code></h3>
+          <pre><code class="javascript">
+    var http = require('http');
+
+    http.createServer(function (req, res) {
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.end('Hello World\n');
+    }).listen(1337, '127.0.0.1');
+
+    console.log('Server running at http://127.0.0.1:1337/');
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Node Process</h2>
+          <h3 style="color:red"><code>src/node.js</code> - Unchanged</h3>
+          <pre><code class="javascript">(function(process) {
+  this.global = this;
+
+  function startup() {
+    var EventEmitter = NativeModule.require('events').EventEmitter;
+
+    process.__proto__ = Object.create(EventEmitter.prototype, {
+      constructor: {
+        value: process.constructor
+      }
+    });
+    EventEmitter.call(process);
+
+    process.EventEmitter = EventEmitter; // process.EventEmitter is deprecated
+
+    // etc...
+});
+</code></pre>
+          <p>Node.js main function takes a <code>JS/Java process</code> object</p>
+        </section>
+
+        <section>
+          <h2>Loading Node.js in Nodyn</h2>
+          <h3 style="color:red"><code>DynJSRuntime.java</code></h3>
+          <pre><code class="java" style="line-height:22px">protected static final String NODE_JS = "node.js";
+protected static final String PROCESS = "nodyn/process.js";
+
+public NodeProcess initialize() {
+    NodeProcess javaProcess = new NodeProcess(this);
+    getEventLoop().setProcess(javaProcess);
+
+    DynJS runtime = new DynJS(config);
+    JSObject global = runtime.getGlobalContext().getObject();
+    ExecutionContext context = runtime.getDefaultExecutionContext();
+
+    JSFunction processFunction = (JSFunction) runScript(PROCESS);
+    context.call(processFunction, global, javaProcess);
+
+    JSFunction nodeFunction = (JSFunction) runScript(NODE_JS);
+    context.call(nodeFunction, global, javaProcess);
+    return javaProcess;
+}
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Process Bindings</h2>
+          <h3 style="color:red"><code>NodeProcess.java</code></h3>
+          <pre><code class="java">public Object binding(String name) {
+    Object binding = this.bindings.get(name);
+    if (binding == null) {
+        binding = loadBinding(name);
+        this.bindings.put(name, binding);
+    }
+    return binding;
+}</code></pre>
+        </section>
+
+        <section>
+          <h2>Process Bindings (Continued)</h2>
+          <h3 style="color:red"><code>DynJSRuntime.java</code></h3>
+          <pre><code class="java">@Override
+public Object loadBinding(String name) {
+    try {
+        this.runner.withSource("__native_require('nodyn/bindings/" + name + "');");
+        return runner.execute();
+    } catch(Throwable t) {
+        this.handleThrowable(t);
+    }
+    return null;
+}</code></pre>
+        </section>
+
+
+        <section>
+          <h2>Bound Functions &amp; Properties</h2>
+          <h3 style="color:red"><code>nodyn/bindings/fs.js</code></h3>
+          <pre><code class="javascript">binding.stat = function(path, callback) {
+    path = possiblyRelative(path);
+    function work() {
+      return buildStat(path, function(stat) { return posix.stat(path, stat); });
+    }
+    return executeWork(work.bind(this), callback, true);
+};
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>JNR Posix</h2>
+          <blockquote>
+            A lightweight cross-platform POSIX emulation layer for
+            Java, written in Java and is part of the JNR project
+          </blockquote>
+          <ul>
+            <li><a href="http://github.com/jnr">http://github.com/jnr</a></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2><code>process.binding()</code></h2>
+          <h3 style="color:red"><code>lib/fs.js</code> - Unchanged</h3>
+          <pre><code class="javascript">var binding = process.binding('fs');
+
+fs.exists = function(path, callback) {
+  if (!nullCheck(path, cb)) return;
+
+  // Now this node.js code is calling our Java/JS functions
+  binding.stat(pathModule._makeLong(path), cb);
+
+  function cb(err, stats) {
+    if (callback) callback(err ? false : true);
+  }
+};</code></pre>
+          <p>Now this node.js code calls Javascript functions backed by Java</p>
+        </section>
+
+				<section>
+					<h2>BAM</h2>
+          <p>Pure Node.js Javascript running on the JVM</p>
+				</section>
+
+				<section>
+					<h2>Conclusion</h2>
+          <img src="images/work-in-progress-sign.jpg" alt="work in progress"/>
+				</section>
+
+        <section>
+          <h2>Resources</h2>
+          <ul>
+            <li>Nodyn &mdash; <a href="http://nodyn.io">http://nodyn.io</a></li>
+            <li>DynJS &mdash; <a href="http://dynjs.org">http://dynjs.org</a></li>
+            <li>Node &mdash; <a href="http://nodejs.org">http://nodejs.org</a></li>
+            <li><a href="http://lanceball.com/process-bindings">http://lanceball.com/process-bindings</a></li>
+          </ul>
+        </section>
+
+				<section>
+					<h1>THE END</h1>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

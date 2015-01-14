@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="hello.GreetingIntegrationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2015-01-08T18:25:09" hostname="davisb-mbpdu.local" time="0.198">
+  <properties/>
+  <testcase name="testRequest" classname="hello.GreetingIntegrationTest" time="0.198"/>
+  <system-out><![CDATA[13:25:09.135 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - Created GET request for "http://localhost:8080/greeting?name=Bobby"
+13:25:09.150 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - Setting request Accept header to [text/plain, application/json, application/*+json, */*]
+13:25:09.281 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - GET request for "http://localhost:8080/greeting?name=Bobby" resulted in 200 (OK)
+13:25:09.281 [Test worker] DEBUG o.s.boot.test.TestRestTemplate - Reading [java.lang.String] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@15dcbfac]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
