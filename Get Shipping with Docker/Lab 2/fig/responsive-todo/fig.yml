@@ -1,0 +1,26 @@
+# Launch WebLogic server with responsive-todo deployed
+weblogicResponsiveTodo:
+  image: taylodl/wls-responsive-todo
+  links:
+   - derbyServer:derby_server
+  ports:
+   - "7001:7001"
+  volumes_from:
+   - responsiveTodoAutodeploy
+
+
+# WebLogic autodeploy directory container responsive-todo war
+responsiveTodoAutodeploy:
+  image: taylodl/wls-autodeploy-responsive-todo
+
+
+# Derby server using volume fromo tododbDatabase
+derbyServer:
+  image: taylodl/derby
+  volumes_from:
+   - tododbDatabase
+
+
+# tododb database
+tododbDatabase:
+  image: taylodl/derby-tododb
