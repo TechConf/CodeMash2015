@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MAML", "MAML", "{58A0A417-047B-42C9-A3BE-6CF2EB352E3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureMgmtLibraryDemo", "MAML\AzureMgmtLibraryDemo\AzureMgmtLibraryDemo.csproj", "{0102594D-2A69-4AF7-9ECA-B489A8F2364C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleSite", "MAML\SampleSite\SampleSite.csproj", "{FA95A706-EBE9-4D41-A7C9-07CE427A43BF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PowerShell Demo", "PowerShell Demo", "{69B2ED9E-23EE-4076-8622-C1163ADAFEE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebRole1", "PowerShell Demo\WebRole1\WebRole1.csproj", "{DD5C69F9-A348-41B2-889F-E42F2C4A0FA3}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "AzureCloudService1", "PowerShell Demo\AzureCloudService1\AzureCloudService1.ccproj", "{2271B659-7082-4FFE-B11A-22EC330ABC95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeMashDemo2", "CodeMashDemo2\CodeMashDemo2.csproj", "{9EE70DC0-52FB-45C8-B037-EFE35E4614D1}"
+EndProject
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "CodeMashDemo2.Deployment", "CodeMashDemo2.Deployment\CodeMashDemo2.Deployment.deployproj", "{E5AF0B4D-9D8A-4859-AD00-20BA5527EB54}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0102594D-2A69-4AF7-9ECA-B489A8F2364C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0102594D-2A69-4AF7-9ECA-B489A8F2364C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0102594D-2A69-4AF7-9ECA-B489A8F2364C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0102594D-2A69-4AF7-9ECA-B489A8F2364C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA95A706-EBE9-4D41-A7C9-07CE427A43BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA95A706-EBE9-4D41-A7C9-07CE427A43BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA95A706-EBE9-4D41-A7C9-07CE427A43BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA95A706-EBE9-4D41-A7C9-07CE427A43BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD5C69F9-A348-41B2-889F-E42F2C4A0FA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD5C69F9-A348-41B2-889F-E42F2C4A0FA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD5C69F9-A348-41B2-889F-E42F2C4A0FA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD5C69F9-A348-41B2-889F-E42F2C4A0FA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2271B659-7082-4FFE-B11A-22EC330ABC95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2271B659-7082-4FFE-B11A-22EC330ABC95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2271B659-7082-4FFE-B11A-22EC330ABC95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2271B659-7082-4FFE-B11A-22EC330ABC95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EE70DC0-52FB-45C8-B037-EFE35E4614D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EE70DC0-52FB-45C8-B037-EFE35E4614D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EE70DC0-52FB-45C8-B037-EFE35E4614D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EE70DC0-52FB-45C8-B037-EFE35E4614D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5AF0B4D-9D8A-4859-AD00-20BA5527EB54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5AF0B4D-9D8A-4859-AD00-20BA5527EB54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5AF0B4D-9D8A-4859-AD00-20BA5527EB54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5AF0B4D-9D8A-4859-AD00-20BA5527EB54}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0102594D-2A69-4AF7-9ECA-B489A8F2364C} = {58A0A417-047B-42C9-A3BE-6CF2EB352E3D}
+		{FA95A706-EBE9-4D41-A7C9-07CE427A43BF} = {58A0A417-047B-42C9-A3BE-6CF2EB352E3D}
+		{DD5C69F9-A348-41B2-889F-E42F2C4A0FA3} = {69B2ED9E-23EE-4076-8622-C1163ADAFEE4}
+		{2271B659-7082-4FFE-B11A-22EC330ABC95} = {69B2ED9E-23EE-4076-8622-C1163ADAFEE4}
+	EndGlobalSection
+EndGlobal

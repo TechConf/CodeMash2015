@@ -1,0 +1,454 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dropLocation": {
+            "type": "string",
+            "metadata": {
+                "visualStudio.deployment": { "parameterUsedAs": { "value": "dropLocation" } }
+            }
+        },
+        "dropLocationSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "visualStudio.deployment": { "parameterUsedAs": { "value": "sasToken", "refersTo": "dropLocation" } }
+            }
+        },
+        "webSitePackage": {
+            "type": "string",
+            "metadata": {
+                "visualStudio.deployment": { "parameterUsedAs": { "value": "projectOutput" } }
+            },
+            "defaultValue": "CodeMashDemo2/package.zip"
+        },
+        "webSiteName": {
+            "type": "string"
+        },
+        "webSiteHostingPlanName": {
+            "type": "string"
+        },
+        "webSiteLocation": {
+            "type": "string"
+        },
+        "webSiteHostingPlanSKU": {
+            "type": "string",
+            "allowedValues": [
+                "Free",
+                "Shared",
+                "Basic",
+                "Standard"
+            ],
+            "defaultValue": "Free"
+        },
+        "webSiteHostingPlanWorkerSize": {
+            "type": "string",
+            "allowedValues": [
+                "0",
+                "1",
+                "2"
+            ],
+            "defaultValue": "0"
+        },
+        "sqlServerName": {
+            "type": "string"
+        },
+        "sqlServerLocation": {
+            "type": "string"
+        },
+        "sqlServerAdminLogin": {
+            "type": "string"
+        },
+        "sqlServerAdminPassword": {
+            "type": "securestring"
+        },
+        "sqlDbName": {
+            "type": "string"
+        },
+        "sqlDbCollation": {
+            "type": "string",
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "sqlDbEdition": {
+            "type": "string",
+            "defaultValue": "Web"
+        },
+        "sqlDbMaxSizeBytes": {
+            "type": "string",
+            "defaultValue": "1073741824"
+        },
+        "sqlDbServiceObjectiveId": {
+            "type": "string",
+            "defaultValue": "910b4fcb-8a29-4c3e-958f-f7ba794388b2"
+        },
+        "redisCacheName": {
+            "type": "string"
+        },
+        "redisCacheLocation": {
+            "type": "string"
+        },
+        "redisCacheSKUName": {
+            "type": "string",
+            "allowedValues": [ "Basic", "Standard" ],
+            "defaultValue": "Standard"
+        },
+        "redisCacheSKUFamily": {
+            "type": "string",
+            "allowedValues": [ "C" ],
+            "defaultValue": "C"
+        },
+        "redisCacheSKUCapacity": {
+            "type": "int",
+            "allowedValues": [ 0, 1, 2, 3, 4, 5, 6 ],
+            "defaultValue": 0
+        },
+        "redisCacheVersion": {
+            "type": "string",
+            "allowedValues": [ "2.8" ],
+            "defaultValue": "2.8"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2014-04-01-preview",
+            "name": "[parameters('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[parameters('sqlServerLocation')]",
+            "tags": {
+                "displayName": "SQLServer"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('sqlServerAdminLogin')]",
+                "administratorLoginPassword": "[parameters('sqlServerAdminPassword')]"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2014-04-01-preview",
+                    "name": "[parameters('sqlDbName')]",
+                    "type": "databases",
+                    "location": "[parameters('sqlServerLocation')]",
+                    "tags": {
+                        "displayName": "SQLDatabase"
+                    },
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'))]"
+                    ],
+                    "properties": {
+                        "edition": "[parameters('sqlDbEdition')]",
+                        "collation": "[parameters('sqlDbCollation')]",
+                        "maxSizeBytes": "[parameters('sqlDbMaxSizeBytes')]",
+                        "requestedServiceObjectiveId": "[parameters('sqlDbServiceObjectiveId')]"
+                    }
+                },
+                {
+                    "apiVersion": "2014-04-01-preview",
+                    "name": "SQLServerFirewallRules",
+                    "type": "firewallrules",
+                    "location": "[parameters('sqlServerLocation')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', parameters('sqlServerName'))]"
+                    ],
+                    "properties": {
+                        "endIpAddress": "0.0.0.0",
+                        "startIpAddress": "0.0.0.0"
+                    }
+                }
+            ]
+        },
+        {
+            "apiVersion": "2014-04-01-preview",
+            "name": "[parameters('webSiteName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[parameters('webSiteLocation')]",
+            "tags": {
+                "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]": "Resource",
+                "displayName": "WebSite"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]"
+            ],
+            "properties": {
+                "name": "[parameters('webSiteName')]",
+                "serverFarm": "[parameters('webSiteHostingPlanName')]"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2014-04-01-preview",
+                    "type": "config",
+                    "name": "web",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/Sites/', parameters('webSiteName'))]"
+                    ],
+                    "properties": {
+                        "connectionStrings": [
+                            {
+                                "ConnectionString": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', parameters('sqlServerName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('sqlDbName'), ';User Id=', parameters('sqlServerAdminLogin'), '@', parameters('sqlServerName'), ';Password=', parameters('sqlServerAdminPassword'), ';')]",
+                                "Name": "DefaultConnection",
+                                "Type": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "apiVersion": "2014-04-01-preview",
+                    "name": "MSDeploy",
+                    "type": "extensions",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/Sites/', parameters('webSiteName'))]"
+                    ],
+                    "properties": {
+                        "packageUri": "[concat(parameters('dropLocation'), '/', parameters('webSitePackage'), parameters('dropLocationSasToken'))]",
+                        "dbType": "None",
+                        "connectionString": "",
+                        "setParameters": {
+                            "IIS Web Application Name": "[parameters('webSiteName')]"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "apiVersion": "2014-04-01-preview",
+            "name": "[parameters('redisCacheName')]",
+            "type": "Microsoft.Cache/Redis",
+            "location": "[parameters('redisCacheLocation')]",
+            "tags": {
+                "displayName": "RedisCache"
+            },
+            "properties": {
+                "sku": {
+                    "name": "[parameters('redisCacheSKUName')]",
+                    "family": "[parameters('redisCacheSKUFamily')]",
+                    "capacity": "[parameters('redisCacheSKUCapacity')]"
+                },
+                "redisVersion": "[parameters('redisCacheVersion')]"
+            }
+        },
+        {
+            "apiVersion": "2014-04-01-preview",
+            "name": "[parameters('webSiteHostingPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[parameters('webSiteLocation')]",
+            "tags": {
+                "displayName": "WebSiteHostingPlan"
+            },
+            "properties": {
+                "name": "[parameters('webSiteHostingPlanName')]",
+                "sku": "[parameters('webSiteHostingPlanSKU')]",
+                "workerSize": "[parameters('webSiteHostingPlanWorkerSize')]",
+                "numberOfWorkers": 1
+            }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('webSiteHostingPlanName'), '-', resourceGroup().name)]",
+            "type": "microsoft.insights/autoscalesettings",
+            "location": "East US",
+            "tags": {
+                "displayName": "WebSiteHostingPlanAutoScale"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]"
+            ],
+            "properties": {
+                "name": "[concat(parameters('webSiteHostingPlanName'), '-', resourceGroup().name)]",
+                "profiles": [
+                    {
+                        "name": "Default",
+                        "capacity": {
+                            "minimum": "1",
+                            "maximum": "2",
+                            "default": "1"
+                        },
+                        "rules": [
+                            {
+                                "metricTrigger": {
+                                    "metricName": "CpuPercentage",
+                                    "metricResourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]",
+                                    "timeGrain": "PT1M",
+                                    "statistic": "Average",
+                                    "timeWindow": "PT10M",
+                                    "timeAggregation": "Average",
+                                    "operator": "GreaterThan",
+                                    "threshold": 80.0
+                                },
+                                "scaleAction": {
+                                    "direction": "Increase",
+                                    "type": "ChangeCount",
+                                    "value": "1",
+                                    "cooldown": "PT10M"
+                                }
+                            },
+                            {
+                                "metricTrigger": {
+                                    "metricName": "CpuPercentage",
+                                    "metricResourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]",
+                                    "timeGrain": "PT1M",
+                                    "statistic": "Average",
+                                    "timeWindow": "PT1H",
+                                    "timeAggregation": "Average",
+                                    "operator": "LessThan",
+                                    "threshold": 60.0
+                                },
+                                "scaleAction": {
+                                    "direction": "Decrease",
+                                    "type": "ChangeCount",
+                                    "value": "1",
+                                    "cooldown": "PT1H"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "enabled": false,
+                "targetResourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]"
+            }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[concat('CPUHigh ', parameters('webSiteHostingPlanName'))]",
+            "type": "microsoft.insights/alertrules",
+            "location": "East US",
+            "tags": {
+                "displayName": "WebSiteHostingPlanAlertRuleCPUHigh"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]"
+            ],
+            "properties": {
+                "name": "[concat('CPUHigh ', parameters('webSiteHostingPlanName'))]",
+                "description": "[concat('The average CPU is high across all the instances of ', parameters('webSiteHostingPlanName'))]",
+                "isEnabled": false,
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]",
+                        "metricName": "CpuPercentage"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 90,
+                    "windowSize": "PT15M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[concat('LongHttpQueue ', parameters('webSiteHostingPlanName'))]",
+            "type": "microsoft.insights/alertrules",
+            "location": "East US",
+            "tags": {
+                "displayName": "WebSiteHostingPlanAlertRuleLongHttpQueue"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]"
+            ],
+            "properties": {
+                "name": "[concat('LongHttpQueue ', parameters('webSiteHostingPlanName'))]",
+                "description": "[concat('The HTTP queue for the instances of ', parameters('webSiteHostingPlanName'), ' has a large number of pending requests.')]",
+                "isEnabled": false,
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('webSiteHostingPlanName'))]",
+                        "metricName": "HttpQueueLength"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 100.0,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[concat('ServerErrors ', parameters('webSiteName'))]",
+            "type": "microsoft.insights/alertrules",
+            "location": "East US",
+            "tags": {
+                "displayName": "WebSiteAlertRuleServerErrors"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/sites/', parameters('webSiteName'))]"
+            ],
+            "properties": {
+                "name": "[concat('ServerErrors ', parameters('webSiteName'))]",
+                "description": "[concat(parameters('webSiteName'), ' has some server errors, status code 5xx.')]",
+                "isEnabled": false,
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('webSiteName'))]",
+                        "metricName": "Http5xx"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 0.0,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[concat('ForbiddenRequests ', parameters('webSiteName'))]",
+            "type": "microsoft.insights/alertrules",
+            "location": "East US",
+            "tags": {
+                "displayName": "WebSiteAlertRuleForbiddenRequests"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/sites/', parameters('webSiteName'))]"
+            ],
+            "properties": {
+                "name": "[concat('ForbiddenRequests ', parameters('webSiteName'))]",
+                "description": "[concat(parameters('webSiteName'), ' has some requests that are forbidden, status code 403.')]",
+                "isEnabled": false,
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('webSiteName'))]",
+                        "metricName": "Http403"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 0,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        },
+        {
+            "apiVersion": "2014-04-01",
+            "name": "[parameters('webSiteName')]",
+            "type": "microsoft.insights/components",
+            "location": "Central US",
+            "tags": {
+                "displayName": "MicrosoftInsightsComponent"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/sites/', parameters('webSiteName'))]"
+            ],
+            "properties": {
+                "ApplicationId": "[parameters('webSiteName')]"
+            }
+        }
+    ]
+}
