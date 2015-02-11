@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DebugSymbols>false</DebugSymbols>
+    <SkipCopyBuildProduct>true</SkipCopyBuildProduct>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <TargetRuntime>None</TargetRuntime>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">obj\</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath Condition=" !HasTrailingSlash('$(BaseIntermediateOutputPath)') ">$(BaseIntermediateOutputPath)\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+    <ProjectReferencesOutputPath Condition=" '$(ProjectReferencesOutputPath)' == '' ">$(IntermediateOutputPath)ProjectReferences</ProjectReferencesOutputPath>
+    <ProjectReferencesOutputPath Condition=" !HasTrailingSlash('$(ProjectReferencesOutputPath)') ">$(ProjectReferencesOutputPath)\</ProjectReferencesOutputPath>
+    <StageOnBuild Condition=" '$(StageOnBuild)' == '' ">false</StageOnBuild>
+    <_StageOnBuild>$(StageOnBuild)</_StageOnBuild>
+    <_StageOnBuild Condition=" '$(BuildingInsideVisualStudio)' == 'true' ">false</_StageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineCommonItemSchemas>false</DefineCommonItemSchemas>
+    <DefineCommonCapabilities>false</DefineCommonCapabilities>
+  </PropertyGroup>
+
+  <ProjectExtensions>
+    <ProjectCapabilities>
+      <DeploymentProject />
+    </ProjectCapabilities>
+  </ProjectExtensions>
+
+  <PropertyGroup>
+    <UploadDropDependsOn>
+      StageDrop;
+      $(UploadDropDependsOn);
+    </UploadDropDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Content>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <ProjectReference>
+      <Private>false</Private>
+      <Targets>Build</Targets>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+
+  <Target Name="CreateManifestResourceNames" />
+
+  <PropertyGroup>
+    <AzCopyPath>$(MSBuildProjectDirectory)\Tools\AzCopy.exe</AzCopyPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <StageDropDependsOn>
+      _GetDeploymentProjectContent;
+      _CalculateContentOutputRelativePaths;
+      _GetReferencedProjectsOutput;
+      _CalculateLocalStorageDropPath;
+      _CopyOutputToLocalStorageDrop;
+    </StageDropDependsOn>
+  </PropertyGroup>
+
+  <Target Name="_CopyOutputToLocalStorageDrop">
+    <Copy SourceFiles="@(DeploymentProjectContentOutput)" DestinationFiles="$(LocalStorageDropPath)$(MSBuildProjectName)%(RelativePath)" />
+    <Copy SourceFiles="@(BuildProjectReferencesOutput)" DestinationFiles="$(LocalStorageDropPath)%(ProjectName)\%(RecursiveDir)%(FileName)%(Extension)" />
+  </Target>
+
+  <Target Name="_GetDeploymentProjectContent">
+    <MSBuild Projects="$(MSBuildProjectFile)" Targets="ContentFilesProjectOutputGroup">
+      <Output TaskParameter="TargetOutputs" ItemName="DeploymentProjectContentOutput" />
+    </MSBuild>
+  </Target>
+
+  <Target Name="_GetReferencedProjectsOutput">
+    <PropertyGroup>
+      <MsBuildProperties>Configuration=$(Configuration);Platform=$(Platform)</MsBuildProperties>
+    </PropertyGroup>
+
+    <MSBuild Projects="@(ProjectReference)"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="$(MsBuildProperties)"
+             Targets="%(ProjectReference.Targets)" />
+
+    <ItemGroup>
+      <BuildProjectReferencesOutput Include="%(ProjectReference.IncludeFilePath)">
+        <ProjectName>$([System.IO.Path]::GetFileNameWithoutExtension('%(ProjectReference.Identity)'))</ProjectName>
+      </BuildProjectReferencesOutput>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_CalculateLocalStorageDropPath">
+    <PropertyGroup>
+      <StorageDropFolderName Condition=" '$(StorageDropFolderName)'=='' ">StorageDrop\</StorageDropFolderName>
+      <LocalStorageDropPath Condition=" '$(OutDir)'!='' ">$(OutDir)</LocalStorageDropPath>
+      <LocalStorageDropPath Condition=" '$(LocalStorageDropPath)'=='' ">$(OutputPath)</LocalStorageDropPath>
+      <LocalStorageDropPath Condition=" !HasTrailingSlash('$(LocalStorageDropPath)') ">$(LocalStorageDropPath)\</LocalStorageDropPath>
+      <LocalStorageDropPath>$(LocalStorageDropPath)$(StorageDropFolderName)</LocalStorageDropPath>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Appends each of the deployment project's content output files with metadata indicating its relative path from the deployment project's folder. -->
+  <Target Name="_CalculateContentOutputRelativePaths"
+          Outputs="%(DeploymentProjectContentOutput.Identity)">
+    <PropertyGroup>
+      <_OriginalIdentity>%(DeploymentProjectContentOutput.Identity)</_OriginalIdentity>
+      <_RelativePath>$(_OriginalIdentity.Replace('$(MSBuildProjectDirectory)', ''))</_RelativePath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <DeploymentProjectContentOutput>
+        <RelativePath>$(_RelativePath)</RelativePath>
+      </DeploymentProjectContentOutput>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CoreCompile" />
+
+  <PropertyGroup>
+    <StageDropAfterTargets Condition=" '$(_StageOnBuild)' == 'true' ">
+      PrepareForRun
+    </StageDropAfterTargets>
+  </PropertyGroup>
+
+  <Target Name="StageDrop" DependsOnTargets="$(StageDropDependsOn)" AfterTargets="$(StageDropAfterTargets)"/>
+
+  <Target Name="UploadDrop" DependsOnTargets="$(UploadDropDependsOn)">
+    <Exec Command="&quot;$(AzCopyPath)&quot; &quot;$(LocalStorageDropPath)&quot; $(Destination) /DestSAS:&quot;$(DestinationSasToken)&quot; /S /Y" />
+  </Target>
+
+</Project>

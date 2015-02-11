@@ -1,0 +1,33 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "webSiteName": {
+            "value": "codemash123"
+        },
+        "webSiteHostingPlanName": {
+            "value": "codemash123"
+        },
+        "webSiteLocation": {
+            "value": "East US"
+        },
+        "sqlServerName": {
+            "value": "codemash123"
+        },
+        "sqlServerLocation": {
+            "value": "East US"
+        },
+        "sqlServerAdminLogin": {
+            "value": "mcollier"
+        },
+        "sqlDbName": {
+            "value": "codemash123"
+        },
+        "redisCacheName": {
+            "value": "codemash123"
+        },
+        "redisCacheLocation": {
+            "value": "East US"
+        }
+    }
+}
